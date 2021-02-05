@@ -47,34 +47,24 @@ const getSecuredInitialConfig = require('./lib/initialConfigValidation')
 const override = require('./lib/pluginOverride')
 const { defaultInitOptions } = getSecuredInitialConfig
 
-const {
-  FST_ERR_BAD_URL,
-  FST_ERR_MISSING_MIDDLEWARE
-} = require('./lib/errors')
+const { FST_ERR_BAD_URL, FST_ERR_MISSING_MIDDLEWARE } = require('./lib/errors')
 
 const onBadUrlContext = {
-  config: {
-  },
+  config: {},
   onSend: [],
   onError: []
 }
 
-function defaultErrorHandler (error, request, reply) {
+function defaultErrorHandler(error, request, reply) {
   if (reply.statusCode < 500) {
-    reply.log.info(
-      { res: reply, err: error },
-      error && error.message
-    )
+    reply.log.info({ res: reply, err: error }, error && error.message)
   } else {
-    reply.log.error(
-      { req: request, res: reply, err: error },
-      error && error.message
-    )
+    reply.log.error({ req: request, res: reply, err: error }, error && error.message)
   }
   reply.send(error)
 }
 
-function fastify (options) {
+function fastify(options) {
   // Options validations
   options = options || {}
 
@@ -96,10 +86,13 @@ function fastify (options) {
   const disableRequestLogging = options.disableRequestLogging || false
   const exposeHeadRoutes = options.exposeHeadRoutes != null ? options.exposeHeadRoutes : false
 
-  const ajvOptions = Object.assign({
-    customOptions: {},
-    plugins: []
-  }, options.ajv)
+  const ajvOptions = Object.assign(
+    {
+      customOptions: {},
+      plugins: []
+    },
+    options.ajv
+  )
   const frameworkErrors = options.frameworkErrors
 
   // Ajv options
@@ -180,8 +173,8 @@ function fastify (options) {
     [kReplySerializerDefault]: null,
     [kContentTypeParser]: new ContentTypeParser(
       bodyLimit,
-      (options.onProtoPoisoning || defaultInitOptions.onProtoPoisoning),
-      (options.onConstructorPoisoning || defaultInitOptions.onConstructorPoisoning)
+      options.onProtoPoisoning || defaultInitOptions.onProtoPoisoning,
+      options.onConstructorPoisoning || defaultInitOptions.onConstructorPoisoning
     ),
     [kReply]: Reply.buildReply(Reply),
     [kRequest]: Request.buildRequest(Request, options.trustProxy),
@@ -194,32 +187,32 @@ function fastify (options) {
     getDefaultRoute: router.getDefaultRoute.bind(router),
     setDefaultRoute: router.setDefaultRoute.bind(router),
     // routes shorthand methods
-    delete: function _delete (url, opts, handler) {
+    delete: function _delete(url, opts, handler) {
       return router.prepareRoute.call(this, 'DELETE', url, opts, handler)
     },
-    get: function _get (url, opts, handler) {
+    get: function _get(url, opts, handler) {
       return router.prepareRoute.call(this, 'GET', url, opts, handler)
     },
-    head: function _head (url, opts, handler) {
+    head: function _head(url, opts, handler) {
       return router.prepareRoute.call(this, 'HEAD', url, opts, handler)
     },
-    patch: function _patch (url, opts, handler) {
+    patch: function _patch(url, opts, handler) {
       return router.prepareRoute.call(this, 'PATCH', url, opts, handler)
     },
-    post: function _post (url, opts, handler) {
+    post: function _post(url, opts, handler) {
       return router.prepareRoute.call(this, 'POST', url, opts, handler)
     },
-    put: function _put (url, opts, handler) {
+    put: function _put(url, opts, handler) {
       return router.prepareRoute.call(this, 'PUT', url, opts, handler)
     },
-    options: function _options (url, opts, handler) {
+    options: function _options(url, opts, handler) {
       return router.prepareRoute.call(this, 'OPTIONS', url, opts, handler)
     },
-    all: function _all (url, opts, handler) {
+    all: function _all(url, opts, handler) {
       return router.prepareRoute.call(this, supportedMethods, url, opts, handler)
     },
     // extended route
-    route: function _route (opts) {
+    route: function _route(opts) {
       // we need the fastify object that we are producing so we apply a lazy loading of the function,
       // otherwise we should bind it after the declaration
       return router.route.call(this, opts)
@@ -270,7 +263,7 @@ function fastify (options) {
 
   Object.defineProperties(fastify, {
     pluginName: {
-      get () {
+      get() {
         if (this[kPluginNameChain].length > 1) {
           return this[kPluginNameChain].join(' -> ')
         }
@@ -278,16 +271,22 @@ function fastify (options) {
       }
     },
     prefix: {
-      get () { return this[kRoutePrefix] }
+      get() {
+        return this[kRoutePrefix]
+      }
     },
     validatorCompiler: {
-      get () { return this[kValidatorCompiler] }
+      get() {
+        return this[kValidatorCompiler]
+      }
     },
     serializerCompiler: {
-      get () { return this[kSerializerCompiler] }
+      get() {
+        return this[kSerializerCompiler]
+      }
     },
     version: {
-      get () {
+      get() {
         if (versionLoaded === false) {
           version = loadVersion()
         }
@@ -295,7 +294,7 @@ function fastify (options) {
       }
     },
     errorHandler: {
-      get () {
+      get() {
         return this[kErrorHandler]
       }
     }
@@ -362,14 +361,14 @@ function fastify (options) {
 
   return fastify
 
-  function throwIfAlreadyStarted (msg) {
+  function throwIfAlreadyStarted(msg) {
     if (fastify[kState].started) throw new Error(msg)
   }
 
   // HTTP injection handling
   // If the server is not ready yet, this
   // utility will automatically force it.
-  function inject (opts, cb) {
+  function inject(opts, cb) {
     // lightMyRequest is dynamically laoded as it seems very expensive
     // because of Ajv
     if (lightMyRequest === undefined) {
@@ -408,7 +407,7 @@ function fastify (options) {
     }
   }
 
-  function ready (cb) {
+  function ready(cb) {
     let resolveReady
     let rejectReady
 
@@ -422,7 +421,7 @@ function fastify (options) {
       })
     }
 
-    function runHooks () {
+    function runHooks() {
       // start loading
       fastify[kAvvioBoot]((err, done) => {
         if (err || fastify[kState].started) {
@@ -434,7 +433,7 @@ function fastify (options) {
       })
     }
 
-    function manageErr (err) {
+    function manageErr(err) {
       if (cb) {
         if (err) {
           cb(err)
@@ -450,25 +449,25 @@ function fastify (options) {
     }
   }
 
-  function use () {
+  function use() {
     throw new FST_ERR_MISSING_MIDDLEWARE()
   }
 
   // wrapper that we expose to the user for hooks handling
-  function addHook (name, fn) {
+  function addHook(name, fn) {
     throwIfAlreadyStarted('Cannot call "addHook" when fastify instance is already started!')
 
     if (name === 'onSend' || name === 'preSerialization' || name === 'onError') {
       if (fn.constructor.name === 'AsyncFunction' && fn.length === 4) {
-        throw new Error('Async function has too many arguments. Async hooks should not use the \'done\' argument.')
+        throw new Error("Async function has too many arguments. Async hooks should not use the 'done' argument.")
       }
     } else if (name === 'onReady') {
       if (fn.constructor.name === 'AsyncFunction' && fn.length !== 0) {
-        throw new Error('Async function has too many arguments. Async hooks should not use the \'done\' argument.')
+        throw new Error("Async function has too many arguments. Async hooks should not use the 'done' argument.")
       }
     } else if (name !== 'preParsing') {
       if (fn.constructor.name === 'AsyncFunction' && fn.length === 3) {
-        throw new Error('Async function has too many arguments. Async hooks should not use the \'done\' argument.')
+        throw new Error("Async function has too many arguments. Async hooks should not use the 'done' argument.")
       }
     }
 
@@ -486,21 +485,21 @@ function fastify (options) {
     }
     return this
 
-    function _addHook (name, fn) {
+    function _addHook(name, fn) {
       this[kHooks].add(name, fn)
       this[kChildren].forEach(child => _addHook.call(child, name, fn))
     }
   }
 
   // wrapper that we expose to the user for schemas handling
-  function addSchema (schema) {
+  function addSchema(schema) {
     throwIfAlreadyStarted('Cannot call "addSchema" when fastify instance is already started!')
     this[kSchemas].add(schema)
     this[kChildren].forEach(child => child.addSchema(schema))
     return this
   }
 
-  function defaultClientErrorHandler (err, socket) {
+  function defaultClientErrorHandler(err, socket) {
     // In case of a connection reset, the socket has been destroyed and there is nothing that needs to be done.
     // https://github.com/fastify/fastify/issues/2036
     // https://github.com/nodejs/node/issues/33302
@@ -521,20 +520,22 @@ function fastify (options) {
 
     // If the socket is not writable, there is no reason to try to send data.
     if (socket.writable) {
-      socket.end(`HTTP/1.1 400 Bad Request\r\nContent-Length: ${body.length}\r\nContent-Type: application/json\r\n\r\n${body}`)
+      socket.end(
+        `HTTP/1.1 400 Bad Request\r\nContent-Length: ${body.length}\r\nContent-Type: application/json\r\n\r\n${body}`
+      )
     }
   }
 
   // If the router does not match any route, every request will land here
   // req and res are Node.js core objects
-  function defaultRoute (req, res) {
+  function defaultRoute(req, res) {
     if (req.headers['accept-version'] !== undefined) {
       req.headers['accept-version'] = undefined
     }
     fourOhFour.router.lookup(req, res)
   }
 
-  function onBadUrl (path, req, res) {
+  function onBadUrl(path, req, res) {
     if (frameworkErrors) {
       const id = genReqId(req)
       const childLogger = logger.child({ reqId: id })
@@ -553,33 +554,33 @@ function fastify (options) {
     res.end(body)
   }
 
-  function setNotFoundHandler (opts, handler) {
+  function setNotFoundHandler(opts, handler) {
     throwIfAlreadyStarted('Cannot call "setNotFoundHandler" when fastify instance is already started!')
 
     fourOhFour.setNotFoundHandler.call(this, opts, handler, avvio, router.routeHandler)
     return this
   }
 
-  function setValidatorCompiler (validatorCompiler) {
+  function setValidatorCompiler(validatorCompiler) {
     throwIfAlreadyStarted('Cannot call "setValidatorCompiler" when fastify instance is already started!')
     this[kValidatorCompiler] = validatorCompiler
     return this
   }
 
-  function setSchemaErrorFormatter (errorFormatter) {
+  function setSchemaErrorFormatter(errorFormatter) {
     throwIfAlreadyStarted('Cannot call "setSchemaErrorFormatter" when fastify instance is already started!')
     validateSchemaErrorFormatter(errorFormatter)
     this[kSchemaErrorFormatter] = errorFormatter.bind(this)
     return this
   }
 
-  function setSerializerCompiler (serializerCompiler) {
+  function setSerializerCompiler(serializerCompiler) {
     throwIfAlreadyStarted('Cannot call "setSerializerCompiler" when fastify instance is already started!')
     this[kSerializerCompiler] = serializerCompiler
     return this
   }
 
-  function setReplySerializer (replySerializer) {
+  function setReplySerializer(replySerializer) {
     throwIfAlreadyStarted('Cannot call "setReplySerializer" when fastify instance is already started!')
 
     this[kReplySerializerDefault] = replySerializer
@@ -587,7 +588,7 @@ function fastify (options) {
   }
 
   // wrapper that we expose to the user for configure the custom error handler
-  function setErrorHandler (func) {
+  function setErrorHandler(func) {
     throwIfAlreadyStarted('Cannot call "setErrorHandler" when fastify instance is already started!')
 
     this[kErrorHandler] = func.bind(this)
@@ -595,7 +596,7 @@ function fastify (options) {
   }
 }
 
-function validateSchemaErrorFormatter (schemaErrorFormatter) {
+function validateSchemaErrorFormatter(schemaErrorFormatter) {
   if (typeof schemaErrorFormatter !== 'function') {
     throw new Error(`schemaErrorFormatter option should be a function, instead got ${typeof schemaErrorFormatter}`)
   } else if (schemaErrorFormatter.constructor.name === 'AsyncFunction') {
@@ -603,11 +604,11 @@ function validateSchemaErrorFormatter (schemaErrorFormatter) {
   }
 }
 
-function wrapRouting (httpHandler, { rewriteUrl, logger }) {
+function wrapRouting(httpHandler, { rewriteUrl, logger }) {
   if (!rewriteUrl) {
     return httpHandler
   }
-  return function preRouting (req, res) {
+  return function preRouting(req, res) {
     const originalUrl = req.url
     const url = rewriteUrl(req)
     if (originalUrl !== url) {
@@ -622,7 +623,7 @@ function wrapRouting (httpHandler, { rewriteUrl, logger }) {
   }
 }
 
-function loadVersion () {
+function loadVersion() {
   versionLoaded = true
   const fs = require('fs')
   const path = require('path')
